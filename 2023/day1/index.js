@@ -25,7 +25,9 @@ const tokens = new Map([
   ["eight", 8],
   ["nine", 9],
 ]);
-const maxLength = Array.from(tokens.keys()).reduce((previous, current) => {
+const keys = Array.from(tokens.keys());
+const lengths = Array.from(new Set(keys.map((str) => str.length)));
+const maxLength = keys.reduce((previous, current) => {
   return current.length > previous ? current.length : previous;
 }, 0);
 const getLineNumbers = (line) => {
@@ -33,7 +35,7 @@ const getLineNumbers = (line) => {
   let i = 0;
 
   while (i < line.length) {
-    for (let len = 1; len <= Math.min(line.length - i, maxLength); len++) {
+    for (let len of lengths.filter((length) => length <= line.length - i)) {
       let segment = line.substring(i, i + len);
 
       iterations++;
