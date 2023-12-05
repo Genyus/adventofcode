@@ -27,15 +27,22 @@ const tokens = new Map([
 ]);
 const getLineNumbers = (line) => {
   const numbers = [];
+  let i = 0;
 
-  for (let i = 0; i < line.length; i++) {
-    for (let substring of tokens.keys()) {
+  while (i < line.length) {
+    for (let len = 1; len <= line.length - i; len++) {
+      let segment = line.substring(i, i + len);
+
       iterations++;
 
-      if (line.startsWith(substring, i)) {
-        numbers.push(tokens.get(substring));
+      if (tokens.has(segment)) {
+        numbers.push(tokens.get(segment));
+        i += Math.max(len - 2, 0);
+
+        break;
       }
     }
+    i++;
   }
 
   return numbers;
