@@ -2,6 +2,7 @@ const fs = require("fs");
 const readline = require("readline");
 const path = require("path");
 
+let iterations = 0;
 const tokens = new Map([
   ["0", 0],
   ["1", 1],
@@ -29,6 +30,8 @@ const getLineNumbers = (line) => {
 
   for (let i = 0; i < line.length; i++) {
     for (let substring of tokens.keys()) {
+      iterations++;
+
       if (line.startsWith(substring, i)) {
         numbers.push(tokens.get(substring));
       }
@@ -55,7 +58,7 @@ try {
     }
   });
   interface.on("close", () => {
-    console.log(`Total: ${total}`);
+    console.log(`Total: ${total}. Iterations: ${iterations}`);
   });
 } catch (err) {
   console.log(`Unable to read ${inputFile}`);
