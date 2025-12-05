@@ -45,14 +45,21 @@ const getNext = (current, line) => {
  * @returns {void}
  */
 const updatePassword = (context, line) => {
-  const current = context.current;
-  const { direction, finalPosition } = parseLine(current, line);
+  /**
+   * Gets the number of times a rotation to the given position clicks through 0
+   * @param {number} position - the dial position
+   * @returns {number} the number of clicks through 0
+   */
+  const getZeroClicks = (position) => Math.floor(position / 100);
+  const currentPosition = context.current;
+  const { direction, finalPosition } = parseLine(currentPosition, line);
 
   if (direction === "L") {
+    // Subtract 1 to handle edge cases where a leftward rotation starts or ends on 0
     context.password +=
-      Math.floor((current - 1) / 100) - Math.floor((finalPosition - 1) / 100);
+      getZeroClicks(currentPosition - 1) - getZeroClicks(finalPosition - 1);
   } else {
-    context.password += Math.floor(finalPosition / 100);
+    context.password += getZeroClicks(finalPosition);
   }
 };
 /**
