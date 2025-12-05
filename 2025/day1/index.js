@@ -21,29 +21,23 @@ const getNext = (current, rotation) => {
 const getNext2 = (context, rotation) => {
   const direction = rotation.substring(0, 1);
   const totalSteps = parseInt(rotation.substring(1));
-  const steps = totalSteps % 100;
+  const finalPosition =
+    context.current + totalSteps * (direction === "L" ? -1 : 1);
+  let toAdd = 0;
 
   if (direction === "L") {
-    const next = context.current - steps;
-    const finalPosition = context.current - totalSteps;
-    const toAdd =
-      finalPosition <= 0
-        ? Math.floor(Math.abs(finalPosition) / 100) +
-          (context.current > 0 ? 1 : 0)
-        : 0;
-
-    context.password += toAdd;
-
-    return next < 0 ? 100 - Math.abs(next) : next;
+    // handle edge case where the current position is 0
+    toAdd =
+      Math.floor((context.current - 1) / 100) -
+      Math.floor((finalPosition - 1) / 100);
   } else {
-    const next = context.current + steps;
-    const finalPosition = context.current + totalSteps;
-    const toAdd = Math.floor(finalPosition / 100);
-
-    context.password += toAdd;
-
-    return next > 99 ? next - 100 : next;
+    toAdd = Math.floor(finalPosition / 100);
   }
+
+  context.password += toAdd;
+
+  // normalise the final position to be between 0 and 99
+  return ((finalPosition % 100) + 100) % 100;
 };
 const part1handler = (line, context) => {
   context.current = getNext(context.current, line);
@@ -76,5 +70,5 @@ const getPassword = (inputFile, handler) => {
   }
 };
 
-// getPassword(inputFile, part1handler);
+getPassword(inputFile, part1handler);
 getPassword(inputFile, part2handler);
