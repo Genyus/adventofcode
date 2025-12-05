@@ -18,26 +18,63 @@ const getNext = (current, rotation) => {
     return next > 99 ? next - 100 : next;
   }
 };
+const getNext2 = (context, rotation) => {
+  const direction = rotation.substring(0, 1);
+  const totalSteps = parseInt(rotation.substring(1));
+  const steps = totalSteps % 100;
 
-try {
-  const fileStream = fs.createReadStream(inputFile);
-  const interface = readline.createInterface({
-    input: fileStream,
-    crlfDelay: Infinity,
-  });
-  let password = 0;
-  let current = 50;
+  if (direction === "L") {
+    const next = context.current - steps;
+    const finalPosition = context.current - totalSteps;
+    const toAdd =
+      finalPosition <= 0
+        ? Math.floor(Math.abs(finalPosition) / 100) +
+          (context.current > 0 ? 1 : 0)
+        : 0;
 
-  interface.on("line", (line) => {
-    current = getNext(current, line);
+    context.password += toAdd;
 
-    if (current === 0) {
-      password++;
-    }
-  });
-  interface.on("close", () => {
-    console.log(`Password: ${password}`);
-  });
-} catch (err) {
-  console.log(`Unable to read ${inputFile}`);
-}
+    return next < 0 ? 100 - Math.abs(next) : next;
+  } else {
+    const next = context.current + steps;
+    const finalPosition = context.current + totalSteps;
+    const toAdd = Math.floor(finalPosition / 100);
+
+    context.password += toAdd;
+
+    return next > 99 ? next - 100 : next;
+  }
+};
+const part1handler = (line, context) => {
+  context.current = getNext(context.current, line);
+
+  if (context.current === 0) {
+    context.password++;
+  }
+};
+const part2handler = (line, context) => {
+  context.current = getNext2(context, line);
+};
+const getPassword = (inputFile, handler) => {
+  try {
+    const fileStream = fs.createReadStream(inputFile);
+    const interface = readline.createInterface({
+      input: fileStream,
+      crlfDelay: Infinity,
+    });
+    const context = {
+      password: 0,
+      current: 50,
+    };
+
+    interface.on("line", (line) => handler(line, context));
+    interface.on("close", () => {
+      console.log(`Password: ${context.password}`);
+    });
+  } catch (err) {
+    console.log(`Unable to read ${inputFile}`);
+  }
+};
+
+// getPassword(inputFile, part1handler);
+getPassword(inputFile, part2handler);
