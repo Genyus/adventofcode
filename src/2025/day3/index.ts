@@ -24,24 +24,25 @@ processInputFile(
 const getJolts = (left: number, right: number): number => {
   return Number(`${left}${right}`);
 };
-const getBankJoltage = (arr: number[]): number => {
+const getBankJoltage = (bank: number[]): number => {
   let maxJolts = 0;
-  let windowJolts = 0;
+  let currentJolts = 0;
   let left = 0;
+  let nextLeft = 0;
 
-  for (let right = 1; right < arr.length; right++) {
-    windowJolts = getJolts(arr[left]!, arr[right]!);
+  for (let right = 1; right < bank.length; right++) {
+    currentJolts = getJolts(bank[left]!, bank[right]!);
 
-    for (let i = left + 1; i < right; i++) {
-      const currentJolts = getJolts(arr[i]!, arr[right]!);
-
-      if (currentJolts > windowJolts) {
-        windowJolts = currentJolts;
-        left = i;
-      }
+    if (bank[right - 1]! > bank[left]!) {
+      nextLeft = right - 1;
     }
 
-    maxJolts = Math.max(maxJolts, windowJolts);
+    if (left !== nextLeft) {
+      left = nextLeft;
+      currentJolts = getJolts(bank[left]!, bank[right]!);
+    }
+
+    maxJolts = Math.max(maxJolts, currentJolts);
   }
 
   return maxJolts;
