@@ -60,13 +60,29 @@ const getInvalidSumForRange1 = (start: number, end: number): number => {
 
   return sum;
 };
+const isRepeating = (token: string): boolean => {
+  const len = token.length;
+
+  for (let i = 1; i <= len / 2; i++) {
+    if (len % i === 0) {
+      const subToken = token.substring(0, i);
+
+      if (subToken.repeat(len / i) === token) {
+        return true;
+      }
+    }
+  }
+
+  return false;
+};
+
 const getSumForFixedLength = (
   length: number,
   min: number,
   max: number,
 ): number => {
   const factors = getFactors(length);
-  const invalidValues: Set<number> = new Set();
+  let sum = 0;
 
   if (factors.length === 0) {
     return 0;
@@ -75,28 +91,36 @@ const getSumForFixedLength = (
   for (const factor of factors) {
     const repetitions = length / factor;
     const minStr = min.toString();
+    const maxStr = max.toString();
+
     let startToken = parseInt(minStr.substring(0, factor));
 
     if (getFullValue(startToken, repetitions) < min) {
       startToken++;
     }
 
-    for (let token = startToken; ; token++) {
-      const fullValue = getFullValue(token, repetitions);
+    let endToken = parseInt(maxStr.substring(0, factor));
 
-      if (fullValue > max) {
-        break;
-      }
+    if (getFullValue(endToken, repetitions) > max) {
+      endToken--;
+    }
 
-      if (invalidValues.has(fullValue)) {
+    if (startToken > endToken) {
+      continue;
+    }
+
+    for (let token = startToken; token <= endToken; token++) {
+      if (isRepeating(token.toString())) {
         continue;
       }
 
-      invalidValues.add(fullValue);
+      const fullValue = getFullValue(token, repetitions);
+
+      sum += fullValue;
     }
   }
 
-  return Array.from(invalidValues).reduce((acc, value) => acc + value, 0);
+  return sum;
 };
 const getInvalidSumForRange2 = (start: number, end: number): number => {
   const startLen = start.toString().length;
@@ -112,13 +136,13 @@ const getInvalidSumForRange2 = (start: number, end: number): number => {
 
   return totalSum;
 };
-const total1 = ranges.reduce(
-  (acc, [start, end]) => acc + getInvalidSumForRange1(start, end),
-  0,
-);
-const total2 = ranges.reduce(
-  (acc, [start, end]) => acc + getInvalidSumForRange2(start, end),
-  0,
-);
-console.log(total1);
-console.log(total2);
+const processRanges = (
+  ranges: [number, number][],
+  fn: (start: number, end: number) => number,
+): number => {
+  return ranges.reduce((acc, [start, end]) => acc + fn(start, end), 0);
+};
+
+console.log(processRanges(ranges, getInvalidSumForRange1));
+console.log(processRanges(ranges, getInvalidSumForRange2));
+
