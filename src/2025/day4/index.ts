@@ -64,18 +64,13 @@ const getNeighbouringRolls = (
   return count;
 };
 
-const isAccessible = (
-  index: number,
-  grid: number[],
-  width: number,
-  height: number,
-) =>
+const isAccessible = (index: number, { grid, width, height }: Context) =>
   grid[index] === ROLL &&
   getNeighbouringRolls(index, grid, width, height) < MAX_NEIGHBOURING_ROLLS;
 
 const calculateRolls = (context: Context) => {
   for (const location of context.locations) {
-    if (isAccessible(location, context.grid, context.width, context.height)) {
+    if (isAccessible(location, context)) {
       context.rolls++;
     }
   }
@@ -87,7 +82,7 @@ const calculateRemovedRolls = (context: Context) => {
   const { grid, width, height } = context;
 
   for (const location of context.locations) {
-    if (isAccessible(location, grid, width, height)) {
+    if (isAccessible(location, context)) {
       stack.push(location);
     }
   }
@@ -104,7 +99,7 @@ const calculateRemovedRolls = (context: Context) => {
     iterateNeighbours(index, width, height, (neighbourIndex) => {
       if (
         grid[neighbourIndex] === ROLL &&
-        isAccessible(neighbourIndex, grid, width, height)
+        isAccessible(neighbourIndex, context)
       ) {
         stack.push(neighbourIndex);
       }
