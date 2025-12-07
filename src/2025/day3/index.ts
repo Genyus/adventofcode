@@ -10,35 +10,6 @@ interface Context {
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const inputFile = path.join(__dirname, "input.txt");
-
-processInputFile(
-  inputFile,
-  (line, context) => {
-    context.totalJoltage += getBankJoltage(
-      line.split("").map(Number),
-      context.requiredBatteries,
-    );
-  },
-  (context) => {
-    displayCompletionMessage(context);
-  },
-  { totalJoltage: 0, requiredBatteries: 2 },
-);
-
-processInputFile(
-  inputFile,
-  (line, context) => {
-    context.totalJoltage += getBankJoltage(
-      line.split("").map(Number),
-      context.requiredBatteries,
-    );
-  },
-  (context) => {
-    displayCompletionMessage(context);
-  },
-  { totalJoltage: 0, requiredBatteries: 12 },
-);
-
 /**
  * Gets the total joltage for the given array of batteries
  * @param {number[]} arr - the array of batteries
@@ -99,3 +70,31 @@ const getBankJoltage = (bank: number[], requiredBatteries: number): number => {
 const displayCompletionMessage = (context: Context) => {
   console.log(`Total Joltage: ${context.totalJoltage}`);
 };
+
+processInputFile(
+  inputFile,
+  (line, context) => {
+    context.totalJoltage += getBankJoltage(
+      line.split("").map(Number),
+      context.requiredBatteries,
+    );
+  },
+  (context) => {
+    displayCompletionMessage(context);
+  },
+  { totalJoltage: 0, requiredBatteries: 2 },
+);
+
+processInputFile(
+  inputFile,
+  (line, context) => {
+    context.totalJoltage += getBankJoltage(
+      line.split("").map(Number),
+      context.requiredBatteries,
+    );
+  },
+  (context) => {
+    displayCompletionMessage(context);
+  },
+  { totalJoltage: 0, requiredBatteries: 12 },
+);
