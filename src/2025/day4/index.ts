@@ -2,98 +2,152 @@ import * as path from "path";
 import { fileURLToPath } from "url";
 import { processInputFile } from "../utils/io.js";
 
-interface Location {
-  row: number;
-  cell: number;
-}
 interface Context {
-  grid: string[][];
+  grid: number[];
+  width: number;
+  height: number;
   rolls: number;
-  locations: Set<Location>;
+  locations: Set<number>;
 }
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const inputFile = path.join(__dirname, "input.txt");
-const getNeighbouringRolls = (
-  rowIndex: number,
-  cellIndex: number,
-  grid: string[][],
+const MAX_NEIGHBOURING_ROLLS = 4;
+const ROLL = 1;
+const EMPTY = 0;
+
+const iterateNeighbours = (
+  index: number,
+  width: number,
+  height: number,
+  callback: (neighbourIndex: number) => void | boolean,
 ) => {
-  let count = 0;
+  const row = Math.floor(index / width);
+  const col = index % width;
 
   for (let i = -1; i <= 1; i++) {
     for (let j = -1; j <= 1; j++) {
       if (i === 0 && j === 0) continue;
 
-      const neighbouringRowIndex = rowIndex + i;
-      const neighbouringCellIndex = cellIndex + j;
+      const neighbouringRow = row + i;
+      const neighbouringCol = col + j;
 
       if (
-        neighbouringRowIndex < 0 ||
-        neighbouringRowIndex >= grid.length ||
-        neighbouringCellIndex < 0 ||
-        neighbouringCellIndex >= grid[neighbouringRowIndex]!.length
+        neighbouringRow < 0 ||
+        neighbouringRow >= height ||
+        neighbouringCol < 0 ||
+        neighbouringCol >= width
       )
         continue;
 
-      if (grid[neighbouringRowIndex]![neighbouringCellIndex]! === "@") count++;
+      const neighbourIndex = neighbouringRow * width + neighbouringCol;
+
+      if (callback(neighbourIndex) === false) return;
     }
   }
+};
+
+const getNeighbouringRolls = (
+  index: number,
+  grid: number[],
+  width: number,
+  height: number,
+) => {
+  let count = 0;
+
+  iterateNeighbours(index, width, height, (neighbourIndex) => {
+    if (grid[neighbourIndex] === ROLL) count++;
+    if (count === MAX_NEIGHBOURING_ROLLS) return false;
+  });
 
   return count;
 };
-const isAccessible = (rowIndex: number, cellIndex: number, grid: string[][]) =>
-  grid[rowIndex]![cellIndex]! === "@" &&
-  getNeighbouringRolls(rowIndex, cellIndex, grid) < 4;
+
+const isAccessible = (
+  index: number,
+  grid: number[],
+  width: number,
+  height: number,
+) =>
+  grid[index] === ROLL &&
+  getNeighbouringRolls(index, grid, width, height) < MAX_NEIGHBOURING_ROLLS;
+
 const calculateRolls = (context: Context) => {
   for (const location of context.locations) {
-    if (isAccessible(location.row, location.cell, context.grid)) {
+    if (isAccessible(location, context.grid, context.width, context.height)) {
       context.rolls++;
     }
   }
   console.log(`Accessible Rolls: ${context.rolls}`);
 };
+
 const calculateRemovedRolls = (context: Context) => {
-  let removedRolls: number;
+  const stack: number[] = [];
+  const { grid, width, height } = context;
 
-  do {
-    removedRolls = 0;
-
-    for (const location of context.locations) {
-      if (isAccessible(location.row, location.cell, context.grid)) {
-        removedRolls++;
-        context.grid[location.row]![location.cell]! = ".";
-        context.locations.delete(location);
-      }
+  for (const location of context.locations) {
+    if (isAccessible(location, grid, width, height)) {
+      stack.push(location);
     }
+  }
 
-    context.rolls += removedRolls;
-  } while (removedRolls > 0);
+  while (stack.length > 0) {
+    const index = stack.pop()!;
+
+    if (grid[index] !== ROLL) continue;
+
+    context.rolls++;
+    grid[index] = EMPTY;
+    context.locations.delete(index);
+
+    iterateNeighbours(index, width, height, (neighbourIndex) => {
+      if (
+        grid[neighbourIndex] === ROLL &&
+        isAccessible(neighbourIndex, grid, width, height)
+      ) {
+        stack.push(neighbourIndex);
+      }
+    });
+  }
 
   console.log(`Removed Rolls: ${context.rolls}`);
 };
 
 processInputFile(
   inputFile,
-  (line, context) => {
-    const row = line.split("");
+  (line, context: Context) => {
+    if (context.width === 0) context.width = line.length;
 
-    context.grid.push(row);
-    row.forEach((cell, cellIndex) => {
-      if (cell === "@") {
-        context.locations.add({
-          row: context.grid.length - 1,
-          cell: cellIndex,
-        });
+    const chars = line.split("");
+
+    for (let i = 0; i < chars.length; i++) {
+      const val = chars[i] === "@" ? ROLL : EMPTY;
+
+      context.grid.push(val);
+
+      if (val === ROLL) {
+        context.locations.add(context.grid.length - 1);
       }
-    });
+    }
+
+    context.height++;
   },
-  (context) => {
-    const context2 = { ...context };
+  (context: Context) => {
+    const context2: Context = {
+      ...context,
+      grid: [...context.grid],
+      locations: new Set(context.locations),
+    };
 
     calculateRolls(context);
     calculateRemovedRolls(context2);
   },
-  { grid: [] as string[][], rolls: 0, locations: new Set<Location>() },
+  {
+    grid: [] as number[],
+    width: 0,
+    height: 0,
+    rolls: 0,
+    locations: new Set<number>(),
+  },
 );
