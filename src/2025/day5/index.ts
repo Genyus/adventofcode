@@ -66,6 +66,12 @@ const getFreshIngredients = (context: Context) => {
     0,
   );
 };
+const getAllFreshIngredients = (context: Context) => {
+  return context.ranges.reduce(
+    (acc, range) => acc + (range[1] - range[0] + 1),
+    0,
+  );
+};
 const getRange = (range: string): Range =>
   range.split("-").map((x) => Number(x)) as Range;
 
@@ -83,9 +89,11 @@ processInputFile(
     sortArrays(context);
     mergeRanges(context);
 
-    const result = getFreshIngredients(context);
+    const result1 = getFreshIngredients(context);
+    const result2 = getAllFreshIngredients(context);
 
-    console.log(`Result: ${result}`);
+    console.log(`Result 1: ${result1}`);
+    console.log(`Result 2: ${result2}`);
   },
   {
     ranges: [],
