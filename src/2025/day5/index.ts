@@ -44,11 +44,7 @@ const mergeRanges = (context: Context) => {
     const currentRange = context.ranges[currentIndex]!;
     const nextRange = context.ranges[nextIndex]!;
 
-    if (currentRange === nextRange) {
-      context.ranges.splice(nextIndex, 1);
-      currentIndex--;
-      nextIndex--;
-    } else if (nextRange[0] <= currentRange[1] + 1) {
+    if (nextRange[0] <= currentRange[1] + 1) {
       context.ranges[currentIndex]! = [
         currentRange[0],
         Math.max(currentRange[1], nextRange[1]),
