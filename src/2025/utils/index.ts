@@ -30,3 +30,20 @@ export const processInputFile = <T>(
     console.log(`Unable to read ${inputFile}`);
   }
 };
+
+export const timeExecution = <T>(
+  callback: (context: T) => void,
+  context: T,
+  iterations: number = 100,
+): void => {
+  const startHr = process.hrtime();
+
+  for (let i = 0; i < iterations; i++) {
+    callback(context);
+  }
+
+  const endHr = process.hrtime(startHr);
+  const elapsedMs = endHr[0] * 1000 + endHr[1] / 1000000;
+
+  console.log(`Execution time: ${elapsedMs} ms`);
+};

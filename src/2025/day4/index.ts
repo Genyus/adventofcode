@@ -1,6 +1,6 @@
 import * as path from "path";
 import { fileURLToPath } from "url";
-import { processInputFile } from "../utils/io.js";
+import { processInputFile } from "../utils/index.js";
 
 interface Context {
   grid: number[];
