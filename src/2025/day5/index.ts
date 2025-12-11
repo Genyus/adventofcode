@@ -57,8 +57,11 @@ const mergeRanges = (context: Context) => {
 };
 const getFreshIngredients = (context: Context) => {
   let rangeIndex = 0;
+  let count = 0;
 
-  return context.ingredients.reduce((acc, ingredient) => {
+  for (let i = 0; i < context.ingredients.length; i++) {
+    const ingredient = context.ingredients[i]!;
+
     while (
       rangeIndex < context.ranges.length &&
       context.ranges[rangeIndex]![1] < ingredient
@@ -66,14 +69,15 @@ const getFreshIngredients = (context: Context) => {
       rangeIndex++;
     }
 
-    return (
-      acc +
-      (rangeIndex < context.ranges.length &&
+    if (
+      rangeIndex < context.ranges.length &&
       context.ranges[rangeIndex]![0] <= ingredient
-        ? 1
-        : 0)
-    );
-  }, 0);
+    ) {
+      count++;
+    }
+  }
+
+  return count;
 };
 const getAllFreshIngredients = (context: Context) => {
   return context.ranges.reduce(
