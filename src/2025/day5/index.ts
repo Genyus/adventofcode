@@ -56,11 +56,24 @@ const mergeRanges = (context: Context) => {
   }
 };
 const getFreshIngredients = (context: Context) => {
-  return context.ingredients.reduce(
-    (acc, ingredient) =>
-      acc + (binarySearch(context.ranges, ingredient) !== -1 ? 1 : 0),
-    0,
-  );
+  let rangeIndex = 0;
+
+  return context.ingredients.reduce((acc, ingredient) => {
+    while (
+      rangeIndex < context.ranges.length &&
+      context.ranges[rangeIndex]![1] < ingredient
+    ) {
+      rangeIndex++;
+    }
+
+    return (
+      acc +
+      (rangeIndex < context.ranges.length &&
+      context.ranges[rangeIndex]![0] <= ingredient
+        ? 1
+        : 0)
+    );
+  }, 0);
 };
 const getAllFreshIngredients = (context: Context) => {
   return context.ranges.reduce(
