@@ -35,6 +35,7 @@ export const timeExecution = <T>(
   callback: (context: T) => void,
   context: T,
   iterations: number = 100,
+  label: string = "",
 ): void => {
   const startHr = process.hrtime();
 
@@ -45,5 +46,11 @@ export const timeExecution = <T>(
   const endHr = process.hrtime(startHr);
   const elapsedMs = endHr[0] * 1000 + endHr[1] / 1000000;
 
-  console.log(`Execution time: ${elapsedMs} ms`);
+  console.log(
+    `Executed ${iterations} iterations${
+      label ? ` of ${label}` : ""
+    }. Total time: ${elapsedMs.toFixed(4)} ms. Average per iteration: ${(
+      elapsedMs / iterations
+    ).toFixed(4)} ms.`,
+  );
 };
