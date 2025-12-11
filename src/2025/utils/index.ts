@@ -8,6 +8,13 @@ import * as readline from "readline";
  * @param {function} closeHandler - the close handler function
  * @param {T} context - the context object
  * @returns {void}
+ * @example
+ * processInputFile("input.txt", (line, context) => {
+ *   context.count++;
+ *   console.log(line);
+ * }, (context) => {
+ *   console.log(`Processed ${context.count} lines`);
+ * }, { count: 0 });
  */
 export const processInputFile = <T>(
   inputFile: string,
@@ -31,6 +38,21 @@ export const processInputFile = <T>(
   }
 };
 
+/**
+ * Times the execution of a callback
+ * @param callback - the callback function to execute
+ * @param context - the context object to pass to the callback function
+ * @param iterations - the number of iterations to run (default: 100)
+ * @param label - the label to use for the execution (optional)
+ * @returns {void}
+ */
+/**
+ * @example
+ * const context = { count: 0 };
+ * timeExecution(() => {
+ *   testFunction(context);
+ * }, context, 100, "testFunction");
+ */
 export const timeExecution = <T>(
   callback: (context: T) => void,
   context: T,

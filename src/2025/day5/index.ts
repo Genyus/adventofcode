@@ -13,28 +13,18 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const inputFile = path.join(__dirname, "input.txt");
 let processingRanges = true;
-const isInRange = (range: Range, value: number): boolean => {
-  return value >= range[0] && value <= range[1];
-};
-const binarySearch = (ranges: Range[], value: number): number => {
-  let left = 0;
-  let right = ranges.length - 1;
-
-  while (left <= right) {
-    const mid = Math.floor((left + right) / 2);
-
-    if (isInRange(ranges[mid]!, value)) return mid;
-
-    if (ranges[mid]![0] < value) left = mid + 1;
-    else right = mid - 1;
-  }
-
-  return -1;
-};
+/**
+ * Sorts the range and ingredient arrays
+ * @param context - the context object
+ */
 const sortArrays = (context: Context) => {
   context.ranges.sort((a, b) => a[0] - b[0]);
   context.ingredients.sort((a, b) => a - b);
 };
+/**
+ * Merges overlapping ranges
+ * @param context - the context object
+ */
 const mergeRanges = (context: Context) => {
   for (
     let currentIndex = 0, nextIndex = 1;
@@ -55,7 +45,7 @@ const mergeRanges = (context: Context) => {
     }
   }
 };
-const getFreshIngredients = (context: Context) => {
+const countFreshIngredients = (context: Context) => {
   let rangeIndex = 0;
   let count = 0;
 
@@ -79,21 +69,26 @@ const getFreshIngredients = (context: Context) => {
 
   return count;
 };
-const getAllFreshIngredients = (context: Context) => {
+const countAllFreshIngredientIds = (context: Context) => {
   return context.ranges.reduce(
     (acc, range) => acc + (range[1] - range[0] + 1),
     0,
   );
 };
-const getRange = (range: string): Range =>
-  range.split("-").map((x) => Number(x)) as Range;
+/**
+ * Parses a range string into a tuple, e.g. "10-20" => [10, 20]
+ * @param rangeStr - a string representing a range
+ * @returns a tuple holding the minimum and maximum values of the range
+ */
+const parseRange = (rangeStr: string): Range =>
+  rangeStr.split("-").map((x) => Number(x)) as Range;
 
 processInputFile(
   inputFile,
   (line, context: Context) => {
     if (line.trim() === "") processingRanges = false;
     else if (processingRanges) {
-      context.ranges.push(getRange(line));
+      context.ranges.push(parseRange(line));
     } else {
       context.ingredients.push(Number(line));
     }
@@ -102,8 +97,8 @@ processInputFile(
     sortArrays(context);
     mergeRanges(context);
 
-    const result1 = getFreshIngredients(context);
-    const result2 = getAllFreshIngredients(context);
+    const result1 = countFreshIngredients(context);
+    const result2 = countAllFreshIngredientIds(context);
 
     console.log(`Result 1: ${result1}`);
     console.log(`Result 2: ${result2}`);
