@@ -48,19 +48,19 @@ const buildOperations2 = (context: Context) => {
     .splice(context.matrix.length - 1, 1)[0]!
     .filter((value) => value !== " ")
     .reverse();
-  const numCols = context.matrix[0]!.length;
-  const numRows = context.matrix.length;
+  const maxColumns = context.matrix[0]!.length;
+  const maxRows = context.matrix.length;
   let operationIndex = 0;
   let operandIndex = 0;
   let operationAccumulator = 0;
   let operator: Operator | null = null;
   let total = 0;
 
-  for (let index = 0; index < numCols; index++) {
+  for (let columnIndex = 0; columnIndex < maxColumns; columnIndex++) {
     let operand = 0;
 
-    for (let rowIndex = 0; rowIndex < numRows; rowIndex++) {
-      const char = context.matrix[rowIndex]![numCols - 1 - index]!;
+    for (let rowIndex = 0; rowIndex < maxRows; rowIndex++) {
+      const char = context.matrix[rowIndex]![maxColumns - 1 - columnIndex]!;
 
       if (char !== " ") {
         operand = operand * 10 + Number(char);
@@ -84,7 +84,7 @@ const buildOperations2 = (context: Context) => {
       operandIndex = 0;
     }
 
-    if (operandIndex === 0 || index === numCols - 1) {
+    if (operandIndex === 0 || columnIndex === maxColumns - 1) {
       total += operationAccumulator;
       operationAccumulator = 0;
       operator = null;
