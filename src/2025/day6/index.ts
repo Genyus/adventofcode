@@ -50,37 +50,44 @@ const buildOperations2 = (context: Context) => {
     .reverse();
   const numCols = context.matrix[0]!.length;
   const numRows = context.matrix.length;
-  let operands: number[][] = Array.from({ length: numRows + 1 }, () => []);
   let operationIndex = 0;
   let operandIndex = 0;
+  let operationAccumulator = 0;
+  let operator: Operator | null = null;
   let total = 0;
+
   for (let index = 0; index < numCols; index++) {
-    let digits = [];
+    let operand = 0;
 
     for (let rowIndex = 0; rowIndex < numRows; rowIndex++) {
-      const row = context.matrix[rowIndex]!;
+      const char = context.matrix[rowIndex]![numCols - 1 - index]!;
 
-      digits.push(row[numCols - 1 - index]!);
+      if (char !== " ") {
+        operand = operand * 10 + Number(char);
+      }
     }
 
-    const operand = digits.join("").trim();
-    if (operand !== "") {
-      operands[operationIndex]!.push(Number(operand));
+    if (operand > 0) {
+      if (operandIndex === 0) {
+        operator = operators[operationIndex]!;
+        operationAccumulator = operand;
+      } else {
+        if (operator === "*") {
+          operationAccumulator *= operand;
+        } else {
+          operationAccumulator += operand;
+        }
+      }
+
       operandIndex++;
     } else {
       operandIndex = 0;
     }
 
-    if (operandIndex === numRows) {
-      const operator = operators[operationIndex]!;
-
-      total +=
-        operator === "*"
-          ? operands[operationIndex]!.reduce((acc, operand) => acc * operand, 1)
-          : operands[operationIndex]!.reduce(
-              (acc, operand) => acc + operand,
-              0,
-            );
+    if (operandIndex === 0 || index === numCols - 1) {
+      total += operationAccumulator;
+      operationAccumulator = 0;
+      operator = null;
       operationIndex++;
     }
   }
