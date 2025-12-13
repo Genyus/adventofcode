@@ -17,15 +17,18 @@ const inputFile = path.join(__dirname, "input.txt");
 const operands: number[][] = [];
 let initialised = false;
 const buildOperations = (line: string, context: Context) => {
-  const values = line.trim().split(/\s+/).filter(Boolean);
+  const values = line.trim().split(/\s+/);
+  let operandIndex = 0;
 
   for (const [index, value] of values.entries()) {
     if (!initialised) {
       operands.push([Number(value)]);
-    } else if (/^\d+$/.test(value)) {
-      operands[index]!.push(Number(value));
+    } else if (isValidOperator(value)) {
+      context.operations.push({
+        [value as Operator]: operands[operandIndex++]!,
+      });
     } else {
-      context.operations.push({ [value as Operator]: operands.shift()! });
+      operands[index]!.push(Number(value));
     }
   }
 
@@ -33,6 +36,8 @@ const buildOperations = (line: string, context: Context) => {
     initialised = true;
   }
 };
+const isValidOperator = (operator: string): operator is Operator =>
+  operators.includes(operator as Operator);
 const applyOperations = (context: Context) => {
   const result = context.operations.reduce((acc, operation) => {
     const key: Operator = Object.keys(operation)[0]! as Operator;
