@@ -36,8 +36,57 @@ const buildOperations = (line: string, context: Context) => {
     initialised = true;
   }
 };
+const buildMatrix = (line: string, context: Context) => {
+  const values = line.split("");
+
+  context.matrix.push(values);
+};
 const isValidOperator = (operator: string): operator is Operator =>
   operators.includes(operator as Operator);
+const buildOperations2 = (context: Context) => {
+  const operators = context.matrix
+    .splice(context.matrix.length - 1, 1)[0]!
+    .filter((value) => value !== " ")
+    .reverse();
+  const numCols = context.matrix[0]!.length;
+  const numRows = context.matrix.length;
+  let operands: number[][] = Array.from({ length: numRows + 1 }, () => []);
+  let operationIndex = 0;
+  let operandIndex = 0;
+  let total = 0;
+  for (let index = 0; index < numCols; index++) {
+    let digits = [];
+
+    for (let rowIndex = 0; rowIndex < numRows; rowIndex++) {
+      const row = context.matrix[rowIndex]!;
+
+      digits.push(row[numCols - 1 - index]!);
+    }
+
+    const operand = digits.join("").trim();
+    if (operand !== "") {
+      operands[operationIndex]!.push(Number(operand));
+      operandIndex++;
+    } else {
+      operandIndex = 0;
+    }
+
+    if (operandIndex === numRows) {
+      const operator = operators[operationIndex]!;
+
+      total +=
+        operator === "*"
+          ? operands[operationIndex]!.reduce((acc, operand) => acc * operand, 1)
+          : operands[operationIndex]!.reduce(
+              (acc, operand) => acc + operand,
+              0,
+            );
+      operationIndex++;
+    }
+  }
+
+  console.log(`Result 2: ${total}`);
+};
 const applyOperations = (context: Context) => {
   const result = context.operations.reduce((acc, operation) => {
     const key: Operator = Object.keys(operation)[0]! as Operator;
@@ -57,6 +106,7 @@ processInputFile(
   inputFile,
   (line: string, context: Context) => {
     buildOperations(line, context);
+    buildMatrix(line, context);
   },
   (context: Context) => {
     const context2: Context = {
@@ -64,6 +114,7 @@ processInputFile(
       matrix: [...context.matrix],
     };
     applyOperations(context);
+    buildOperations2(context2);
   },
   {
     operations: [] as Operation[],
