@@ -2,40 +2,20 @@ import * as path from "path";
 import { fileURLToPath } from "url";
 import { processInputFile, timeExecution } from "../utils/index.js";
 
+type Axis = "x" | "y";
+
 interface Context {
-  operations: Operation[];
   matrix: string[][];
+  axis?: Axis;
 }
 
 const operators = ["*", "+"];
 type Operator = (typeof operators)[number];
-type Operation = Partial<Record<Operator, number[]>>;
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const inputFile = path.join(__dirname, "input.txt");
-const operands: number[][] = [];
-let initialised = false;
-const buildOperations = (line: string, context: Context) => {
-  const values = line.trim().split(/\s+/);
-  let operandIndex = 0;
 
-  for (const [index, value] of values.entries()) {
-    if (!initialised) {
-      operands.push([Number(value)]);
-    } else if (isValidOperator(value)) {
-      context.operations.push({
-        [value as Operator]: operands[operandIndex++]!,
-      });
-    } else {
-      operands[index]!.push(Number(value));
-    }
-  }
-
-  if (!initialised) {
-    initialised = true;
-  }
-};
 const buildMatrix = (line: string, context: Context) => {
   const values = line.split("");
 
@@ -43,88 +23,85 @@ const buildMatrix = (line: string, context: Context) => {
 };
 const isValidOperator = (operator: string): operator is Operator =>
   operators.includes(operator as Operator);
-const buildOperations2 = (context: Context) => {
-  const operators = context.matrix
-    .splice(context.matrix.length - 1, 1)[0]!
-    .filter((value) => value !== " ")
-    .reverse();
+const calculateTotal = (context: Context): number => {
+  const axis = context.axis!;
+  const operatorRow = context.matrix.splice(context.matrix.length - 1, 1)[0]!;
+  const operatorPositions: Array<{ index: number; operator: Operator }> = [];
   const maxColumns = context.matrix[0]!.length;
   const maxRows = context.matrix.length;
-  let operationIndex = 0;
-  let operandIndex = 0;
-  let operationAccumulator = 0;
-  let operator: Operator | null = null;
   let total = 0;
 
-  for (let columnIndex = 0; columnIndex < maxColumns; columnIndex++) {
-    let operand = 0;
-
-    for (let rowIndex = 0; rowIndex < maxRows; rowIndex++) {
-      const char = context.matrix[rowIndex]![maxColumns - 1 - columnIndex]!;
-
-      if (char !== " ") {
-        operand = operand * 10 + Number(char);
-      }
-    }
-
-    if (operand > 0) {
-      if (operandIndex === 0) {
-        operator = operators[operationIndex]!;
-        operationAccumulator = operand;
-      } else {
-        if (operator === "*") {
-          operationAccumulator *= operand;
-        } else {
-          operationAccumulator += operand;
-        }
-      }
-
-      operandIndex++;
-    } else {
-      operandIndex = 0;
-    }
-
-    if (operandIndex === 0 || columnIndex === maxColumns - 1) {
-      total += operationAccumulator;
-      operationAccumulator = 0;
-      operator = null;
-      operationIndex++;
+  for (let i = 0; i < operatorRow.length; i++) {
+    if (isValidOperator(operatorRow[i]!)) {
+      operatorPositions.push({
+        index: i,
+        operator: operatorRow[i] as Operator,
+      });
     }
   }
 
-  console.log(`Result 2: ${total}`);
-};
-const applyOperations = (context: Context) => {
-  const result = context.operations.reduce((acc, operation) => {
-    const key: Operator = Object.keys(operation)[0]! as Operator;
+  const operations = operatorPositions.map((op, i) => ({
+    start: op.index,
+    end:
+      i < operatorPositions.length - 1
+        ? operatorPositions[i + 1]!.index - 1
+        : maxColumns - 1,
+    operator: op.operator,
+  }));
 
-    return (
-      acc +
-      (key === "*"
-        ? operation[key]!.reduce((acc, operand) => acc * operand, 1)
-        : operation[key]!.reduce((acc, operand) => acc + operand, 0))
-    );
-  }, 0);
+  for (const operation of operations) {
+    const { start, end, operator } = operation;
+    const outer = axis === "x" ? maxRows : end - start + 1;
+    const inner = axis === "x" ? end - start + 1 : maxRows;
+    let subtotal = operator === "*" ? 1 : 0;
 
-  console.log(`Result: ${result}`);
+    for (let i = 0; i < outer; i++) {
+      let num = 0;
+
+      for (let j = 0; j < inner; j++) {
+        const row = axis === "x" ? i : j;
+        const col = axis === "x" ? start + j : start + i;
+        const char = context.matrix[row]![col]!;
+
+        if (char !== " ") {
+          num = num * 10 + Number(char);
+        }
+      }
+
+      if (num > 0) {
+        subtotal = operator === "*" ? subtotal * num : subtotal + num;
+      }
+    }
+
+    total += subtotal;
+  }
+
+  return total;
 };
 
 processInputFile(
   inputFile,
   (line: string, context: Context) => {
-    buildOperations(line, context);
     buildMatrix(line, context);
   },
   (context: Context) => {
-    const context2: Context = {
-      operations: [],
-      matrix: [...context.matrix],
+    const matrix = [...context.matrix];
+    const context1: Context = {
+      ...context,
+      matrix: [...matrix],
+      axis: "x",
     };
-    applyOperations(context);
-    buildOperations2(context2);
+    const context2: Context = {
+      ...context,
+      matrix: [...matrix],
+      axis: "y",
+    };
+    const result1 = calculateTotal(context1);
+    const result2 = calculateTotal(context2);
+    console.log(`Part 1: ${result1}`);
+    console.log(`Part 2: ${result2}`);
   },
   {
-    operations: [] as Operation[],
     matrix: [] as string[][],
   },
 );
