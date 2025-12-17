@@ -26,31 +26,13 @@ const isValidOperator = (operator: string): operator is Operator =>
 const calculateTotal = (context: Context): number => {
   const axis = context.axis!;
   const operatorRow = context.matrix.splice(context.matrix.length - 1, 1)[0]!;
-  const operatorPositions: Array<{ index: number; operator: Operator }> = [];
   const maxColumns = context.matrix[0]!.length;
   const maxRows = context.matrix.length;
   let total = 0;
+  let currentStart = -1;
+  let currentOperator: Operator | null = null;
 
-  for (let i = 0; i < operatorRow.length; i++) {
-    if (isValidOperator(operatorRow[i]!)) {
-      operatorPositions.push({
-        index: i,
-        operator: operatorRow[i] as Operator,
-      });
-    }
-  }
-
-  const operations = operatorPositions.map((op, i) => ({
-    start: op.index,
-    end:
-      i < operatorPositions.length - 1
-        ? operatorPositions[i + 1]!.index - 1
-        : maxColumns - 1,
-    operator: op.operator,
-  }));
-
-  for (const operation of operations) {
-    const { start, end, operator } = operation;
+  const processBlock = (start: number, end: number, operator: Operator) => {
     const outer = axis === "x" ? maxRows : end - start + 1;
     const inner = axis === "x" ? end - start + 1 : maxRows;
     let subtotal = operator === "*" ? 1 : 0;
@@ -74,6 +56,23 @@ const calculateTotal = (context: Context): number => {
     }
 
     total += subtotal;
+  };
+
+  for (let i = 0; i < operatorRow.length; i++) {
+    const value = operatorRow[i]!;
+
+    if (!isValidOperator(value)) continue;
+
+    if (currentOperator !== null) {
+      processBlock(currentStart, i - 1, currentOperator);
+    }
+
+    currentStart = i;
+    currentOperator = value as Operator;
+  }
+
+  if (currentOperator !== null) {
+    processBlock(currentStart, maxColumns - 1, currentOperator);
   }
 
   return total;
